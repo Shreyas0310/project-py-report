@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Attendance Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <h1 class="text-3xl font-bold text-[#800000] mb-2">Attendance Report</h1>
+        <h2 class="text-xl mb-6">For {{ student_name }}</h2>
+
+        <!-- Attendance Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            {% for subject in attendance_stats %}
+            <div class="bg-white p-4 rounded-lg shadow">
+                <h3 class="font-bold text-lg">{{ subject['subject_name'] }}</h3>
+                <div class="mt-2">
+                    <div class="h-4 bg-gray-200 rounded-full">
+                        <div class="h-4 bg-[#800000] rounded-full" 
+                             style="width: {{ subject['attendance_percentage']|round(1) }}%"></div>
+                    </div>
+                    <p class="mt-2 text-sm">
+                        {{ subject['present_count'] }}/{{ subject['total_classes'] }} classes
+                        ({{ subject['attendance_percentage']|round(1) }}%)
+                    </p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Visual Chart -->
+        <div class="bg-white p-4 rounded-lg shadow">
+            <canvas id="attendanceChart"></canvas>
+        </div>
+
+        <a href="/student-dashboard?student_id={{ request.args.get('student_id') }}" 
+           class="mt-6 inline-block bg-[#800000] text-white px-4 py-2 rounded">
+            Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Chart.js Script -->
+    <script>
+        const ctx = document.getElementById('attendanceChart');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [{% for s in attendance_stats %}'{{ s['subject_name'] }}',{% endfor %}],
+                datasets: [{
+                    label: 'Attendance Percentage',
+                    data: [{% for s in attendance_stats %}{{ s['attendance_percentage'] }},{% endfor %}],
+                    backgroundColor: '#800000',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Percentage (%)'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
